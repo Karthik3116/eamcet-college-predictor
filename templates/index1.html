@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College Filter</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;
+        }
+        .phase-selector {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 10px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;
+            text-align: center;
+        }
+        .phase-selector label {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .phase-selector select {
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        p {
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+        }
+        .total-views {
+            text-align: center;
+            font-size: 16px;
+            color: #4CAF50;
+            font-weight: bold;
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #e7f5e6;
+            border: 1px solid #4CAF50;
+            border-radius: 4px;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        input[type="radio"] {
+            margin-right: 5px;
+        }
+        .radio-group {
+            margin-bottom: 15px;
+        }
+        input[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+        .scrolling-headline {
+            width: 100%;
+            overflow: hidden;
+            white-space: nowrap;
+            box-sizing: border-box;
+            border: 1px solid #FF5733;
+            background-color: #ffcccb;
+            color: #FF5733;
+            padding: 10px 0;
+            margin-bottom: 20px;
+            font-weight: bold;
+            position: relative;
+        }
+        .scrolling-headline span {
+            display: inline-block;
+            padding-left: 100%;
+            animation: scroll 10s linear infinite;
+        }
+        @keyframes scroll {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(-100%);
+            }
+        }
+        .scrolling-headline::before,
+        .scrolling-headline::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 30px;
+            background: linear-gradient(to right, #ffcccb, transparent);
+            z-index: 1;
+        }
+        .scrolling-headline::before {
+            left: 0;
+        }
+        .scrolling-headline::after {
+            right: 0;
+            transform: rotate(180deg);
+        }
+    </style>
+</head>
+<body>
+    
+
+    <div class="container">
+        <h1>BASED ON PREVIOUS YEAR 1ST PHASE (2023)</h1>
+        <h1>Filter Colleges</h1>
+        <div class="scrolling-headline"><span>Final Phase will be coming soon</span></div>
+        <div class="total-views" id="viewCount">Total Website Visits: {{ visits_count }}</div>
+        <div class="phase-selector">
+            <label for="phase">Select Phase:</label>
+            <select id="phase" name="phase" form="filterForm">
+                <option value="01_TSEAMCET_2023_FirstPhase_LastRanks.csv">First Phase</option>
+                <option value="01_TSEAMCET_2023_SecondPhase_LastRanks.csv">Second Phase</option>
+                <!-- Add more phases as needed -->
+            </select>
+        </div>
+        <form id="filterForm" method="post">
+            <label for="caste">Caste:</label>
+            <p>Example: bc_d, bc_b, etc.</p>
+            <input type="text" id="caste" name="caste" required>
+
+            <div class="radio-group">
+                <label>Gender:</label>
+                <input type="radio" id="gender_male" name="gender" value="BOYS" required>
+                <label for="gender_male">Male</label>
+                <input type="radio" id="gender_female" name="gender" value="GIRLS" required>
+                <label for="gender_female">Female</label>
+            </div>
+
+            <label for="rank">Rank:</label>
+            <input type="number" id="rank" name="rank" required>
+
+            <label for="preferred_courses">Preferred Courses (comma separated):</label>
+            <p>Example: CSM, CSE, CSD</p>
+            <input type="text" id="preferred_courses" name="preferred_courses">
+
+            <input type="submit" value="Submit">
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const viewCountElement = document.getElementById('viewCount');
+            const visitsCount = parseInt(viewCountElement.textContent.match(/\d+/)[0], 10);
+            let currentCount = 0;
+            const duration = 2000;
+            const increment = Math.ceil(visitsCount / (duration / 20));
+
+            function updateCount() {
+                currentCount += increment;
+                if (currentCount < visitsCount) {
+                    viewCountElement.textContent = 'Total Website Visits: ' + currentCount;
+                    requestAnimationFrame(updateCount);
+                } else {
+                    viewCountElement.textContent = 'Total Website Visits: ' + visitsCount;
+                }
+            }
+
+            updateCount();
+        });
+    </script>
+</body>
+</html>
